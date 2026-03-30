@@ -6,10 +6,10 @@ export const getDatabaseConfig = (
 ): TypeOrmModuleOptions => ({
   type: 'mysql',
   host: configService.get<string>('database.host'),
-  port: configService.get<number>('DB_PORT'),
-  username: configService.get<string>('DB_USERNAME'),
-  password: configService.get<string>('DB_PASSWORD'),
-  database: configService.get<string>('DB_NAME'),
+  port: configService.get<number>('database.port'),
+  username: configService.get<string>('database.username'),
+  password: configService.get<string>('database.password'),
+  database: configService.get<string>('database.name'),
   autoLoadEntities: true,
   synchronize: configService.get<string>('NODE_ENV') !== 'production',
 });
