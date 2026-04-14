@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -16,8 +16,8 @@ export class UsersService {
     ) { }
 
 
-    async createUser(CreateUserDto: CreateUserDto): Promise<User> {
-        const { email, password, pseudonym } = CreateUserDto
+    async createUser(createUserDto: CreateUserDto): Promise<User> {
+        const { email, password, pseudonym } = createUserDto
 
         const existingUser = await this.usersRepository.findOne({
             where: { email }
@@ -38,9 +38,8 @@ export class UsersService {
 
         const savedUser = await this.usersRepository.save(user);
 
-        const { password: _, ...result } = savedUser;
-
-        return result as User;
+       
+        return savedUser
 
     }
 
@@ -56,7 +55,7 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new BadRequestException('User not found');
+            throw new NotFoundException('User not found');
         }
         const { password, ...result } = user;
 
@@ -70,7 +69,7 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new BadRequestException('User not found');
+            throw new NotFoundException('User not found');
         }
         if (updateUserDto.pseudonym !== undefined) {
             user.pseudonym = updateUserDto.pseudonym;
@@ -85,20 +84,20 @@ export class UsersService {
         return result as User;
     }
 
-    async deleteUser(id: number, currentUser: any): Promise<{ message: string }> {
+    async deleteUser(id: number, currentUser: { userId: number, role: UserRole }): Promise<{ message: string }> {
 
         const user = await this.usersRepository.findOne({
             where: { id },
         })
 
         if (!user) {
-            throw new BadRequestException('User not found');
+           throw new NotFoundException('User not found');;
         }
 
         if (currentUser.userId !== id) {
 
             if (currentUser.role !== UserRole.ADMIN) {
-                throw new ForbiddenException('YOu cannot delete this user?')
+                throw new ForbiddenException('You cannot delete this user')
             }
         }
 
@@ -108,5 +107,8 @@ export class UsersService {
         }
     }
 
+    async findByEmail(email: string) {
+        return this.usersRepository.findOne({ where: { email } });
+    }
 
 }

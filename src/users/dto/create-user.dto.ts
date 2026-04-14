@@ -3,14 +3,14 @@ import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString } from 'class-vali
 export class CreateUserDto {
 
     @IsEmail()
-    email: string;
+    email!: string;
 
     @IsNotEmpty()
     @MinLength(6)
-    password: string;
+    password!: string;
 
     @IsNotEmpty()
-    pseudonym: string;
+    pseudonym!: string;
 
     @IsOptional()
     @IsString()
