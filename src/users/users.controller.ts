@@ -2,7 +2,9 @@ import { Controller, Body, Post, Get, Patch, Param, UseGuards, Request, Delete }
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-//import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from './entities/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
 
 
 
@@ -15,17 +17,18 @@ export class UsersController {
 
     @Post()
     async createUser(@Body() createUserDto: CreateUserDto) {
-        return this.usersService.createUser(createUserDto);
+        const user = await this.usersService.createUser(createUserDto);
+        const { password, ...result } = user;
+        return result as User;
     }
 
     @Get()
     async findAll() {
         return this.usersService.findAll();
     }
-
     @Get(':id')
-    async findById(@Body('id') id: number) {
-        return this.usersService.findOne(id);
+    async findById(@Param('id') id: string) {
+        return this.usersService.findOne(+id);
     }
 
     @Patch(':id')
@@ -36,14 +39,14 @@ export class UsersController {
 
 
     @Delete(':id')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     remove(
         @Param('id') id: string,
-        @Request() req,
+        @Request() req: any,
     ) {
         return this.usersService.deleteUser(
             +id,
-            req.user, // 👈 clave
+            req.user, // 👈 viene del JWT
         );
     }
 }

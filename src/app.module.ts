@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { getDatabaseConfig } from './config/datebase.config';
 import {AppConfigModule} from './config/config.module';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [AppConfigModule,
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
   }),
 UsersModule,
+AuthModule,
 ],
   controllers: [AppController],
   providers: [AppService],
