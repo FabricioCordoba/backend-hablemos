@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Post } from '../../posts/entities/post.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 
 export enum UserRole {
     ADMIN = 'ADMIN',
@@ -8,26 +9,27 @@ export enum UserRole {
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column({ unique: true })
-    email: string;
+    email!: string;
 
     @Column()
-    password: string;
+    password!: string;
 
     @Column()
-    pseudonym: string;
+    pseudonym!: string;
 
     @Column({ default: 'avatar_1' })
-    avatar: string;
+    avatar!: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-    role: UserRole;
+    role!: UserRole;
 
 
-
+    @OneToMany(() => Post, (post) => post.author)
+    posts!: Post[];
 }
