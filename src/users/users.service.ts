@@ -33,7 +33,7 @@ export class UsersService {
             email,
             password: hashedPassword,
             pseudonym,
-            avatar: CreateUserDto.avatar
+            avatar: createUserDto.avatar
         })
 
         const savedUser = await this.usersRepository.save(user);

@@ -9,6 +9,7 @@ import { getDatabaseConfig } from './config/datebase.config';
 import {AppConfigModule} from './config/config.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [AppConfigModule,
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
   }),
 UsersModule,
 AuthModule,
+PostsModule,
 ],
   controllers: [AppController],
   providers: [AppService],
