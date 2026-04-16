@@ -26,6 +26,9 @@ export class User {
     @CreateDateColumn()
     createdAt!: Date;
 
+    @UpdateDateColumn()
+    updatedAt!: Date;
+
     @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
     role!: UserRole;
 
@@ -34,5 +37,5 @@ export class User {
     posts!: Post[];
 
     @OneToMany(() => Comment, (comment) => comment.post)
-comments!: Comment[];
+    comments!: Comment[];
 }

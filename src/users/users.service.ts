@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoggerService } from '../common/logger/logger.service';
 
 
 @Injectable()
@@ -13,10 +14,14 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
-    ) { }
+        private logger: LoggerService,
+    ) {
+        this.logger = new LoggerService('UsersService');
+    }
 
 
     async createUser(createUserDto: CreateUserDto): Promise<User> {
+        this.logger.logInfo('Creating new user', 'createUser', { email: createUserDto.email });
         const { email, password, pseudonym } = createUserDto
 
         const existingUser = await this.usersRepository.findOne({
@@ -96,6 +101,11 @@ export class UsersService {
 
         if (currentUser.userId !== id) {
             if (currentUser.role !== UserRole.ADMIN) {
+                this.logger.logWarn(
+                    'Unauthorized user deletion attempt',
+                    'deleteUser',
+                    { userId: currentUser.userId, targetUserId: id, userRole: currentUser.role }
+                );
                 throw new ForbiddenException('You cannot delete this user')
             }
         }

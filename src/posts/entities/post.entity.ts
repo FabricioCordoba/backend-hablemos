@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   OneToMany,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
@@ -14,15 +15,18 @@ export class Post {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ length: 1000 })
+  @Column({ length: 2000 })
   content!: string;
 
   @CreateDateColumn()
   createdAt!: Date;
 
-@ManyToOne(() => User, (user) => user.posts)
-author!: User;
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
-@OneToMany(() => Comment, (comment) => comment.post)
-comments!: Comment[];
+  @ManyToOne(() => User, (user) => user.posts)
+  author!: User;
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments!: Comment[];
 }
