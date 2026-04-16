@@ -1,4 +1,4 @@
-import { UserRole } from 'src/users/entities/user.entity';
+import { User, UserRole } from 'src/users/entities/user.entity';
 import {
   ForbiddenException,
   Injectable,
@@ -11,25 +11,51 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostResponseDto } from './dto/post-response.dto';
 import { PaginatedPostsDto } from './dto/paginated-posts.dto';
+import { AuthorResponseDto } from './dto/post-response.dto';
+import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
+import { Comment } from 'src/comments/entities/comment.entity';
+import { PostDetailResponseDto } from './dto/post-detail-response.dto';
+import { PostFeedDto } from './dto/post-feed-dto';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
-    private postsRepository: Repository<Post>,
-  ) {}
+    private readonly postsRepository: Repository<Post>,
+  ) { }
 
-  // 🔥 mapper único
-  private toPostResponse(post: Post): PostResponseDto {
-    const { password, ...author } = post.author;
 
+  private mapAuthor(user: User): AuthorResponseDto {
+    const { password, ...rest } = user;
+    return rest;
+  }
+
+  private mapComment(comment: Comment): CommentResponseDto {
     return {
-      id: post.id,
-      content: post.content,
-      createdAt: post.createdAt,
-      author,
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      author: this.mapAuthor(comment.author),
     };
   }
+//--------------------------------------------------
+private mapPost(post: Post): PostResponseDto {
+  return {
+    id: post.id,
+    content: post.content,
+    createdAt: post.createdAt,
+    author: this.mapAuthor(post.author),
+  };
+}
+
+private mapPostDetail(post: Post): PostDetailResponseDto {
+  return {
+    ...this.mapPost(post),
+    comments: post.comments?.map((c) => this.mapComment(c)) || [],
+  };
+}
+
+
 
   // 🔥 helper reutilizable
   private async findPostOrFail(id: number): Promise<Post> {
@@ -59,7 +85,7 @@ export class PostsService {
 
     const fullPost = await this.findPostOrFail(saved.id);
 
-    return this.toPostResponse(fullPost);
+    return this.mapPost(fullPost);
   }
 
   // 🔥 UPDATE
@@ -82,11 +108,11 @@ export class PostsService {
 
     const updated = await this.postsRepository.save(post);
 
-    return this.toPostResponse(updated);
+    return this.mapPost(updated);
   }
 
   // 🔥 DELETE
-  async remove(id: number, userId: number, role: UserRole) {
+  async remove(id: number, userId: number, role: UserRole):Promise<{ message: string }> {
     const post = await this.findPostOrFail(id);
 
     if (post.author.id !== userId && role !== UserRole.ADMIN) {
@@ -101,29 +127,65 @@ export class PostsService {
   }
 
   // 🔥 GET ALL
-  async findAll(page = 1, limit = 10): Promise<PaginatedPostsDto> {
-    const [posts, total] = await this.postsRepository.findAndCount({
-      order: { createdAt: 'DESC' },
-      take: limit,
-      skip: (page - 1) * limit,
-      relations: ['author'],
-    });
+async findAll(page = 1, limit = 10): Promise<PaginatedPostsDto> {
+  const [posts, total] = await this.postsRepository.findAndCount({
+    relations: ['author'],
+    take: limit,
+    skip: (page - 1) * limit,
+    order: { createdAt: 'DESC' },
+  });
 
-    const data = posts.map((post) =>
-      this.toPostResponse(post),
-    );
+  return {
+    data: posts.map((p) => this.mapPost(p)),
+    total,
+    page,
+    lastPage: Math.ceil(total / limit),
+  };
+}
 
-    return {
-      data,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
-    };
-  }
+async findFeed(page = 1, limit = 10): Promise<PostFeedDto[]> {
+  const query = this.postsRepository
+    .createQueryBuilder('post')
+    .leftJoin('post.author', 'author')
+    .loadRelationCountAndMap(
+      'post.commentsCount',
+      'post.comments',
+    )
+    .select([
+      'post.id',
+      'post.content',
+      'post.createdAt',
+      'author.id',
+      'author.pseudonym',
+      'author.avatar',
+    ])
+    .orderBy('post.createdAt', 'DESC')
+    .take(limit)
+    .skip((page - 1) * limit);
 
-  // 🔥 GET BY ID
-  async findOne(id: number): Promise<PostResponseDto> {
-    const post = await this.findPostOrFail(id);
-    return this.toPostResponse(post);
-  }
+  const posts = await query.getMany();
+
+  return posts.map((post: any) => ({
+    id: post.id,
+    content: post.content,
+    createdAt: post.createdAt,
+    author: {
+      id: post.author.id,
+      pseudonym: post.author.pseudonym,
+      avatar: post.author.avatar,
+    },
+    commentsCount: post.commentsCount,
+  }));
+}
+
+async findOne(id: number): Promise<PostDetailResponseDto> {
+  const post = await this.postsRepository.findOne({
+    where: { id },
+    relations: ['author', 'comments', 'comments.author'],
+  });
+
+  if (!post) throw new NotFoundException();
+
+  return this.mapPostDetail(post);
+}
 }

@@ -38,7 +38,7 @@ export class UsersService {
 
         const savedUser = await this.usersRepository.save(user);
 
-       
+
         return savedUser
 
     }
@@ -91,11 +91,10 @@ export class UsersService {
         })
 
         if (!user) {
-           throw new NotFoundException('User not found');;
+            throw new NotFoundException('User not found');;
         }
 
         if (currentUser.userId !== id) {
-
             if (currentUser.role !== UserRole.ADMIN) {
                 throw new ForbiddenException('You cannot delete this user')
             }

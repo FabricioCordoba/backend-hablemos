@@ -47,7 +47,7 @@ async login(email: string, password: string) {
 
     const payload = {
       sub: user.id,
-      role: user
+      role: user.role
 
     }
 
