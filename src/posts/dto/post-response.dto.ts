@@ -1,4 +1,7 @@
 import { UserRole } from 'src/users/entities/user.entity';
+import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
+
+
 
 export class AuthorResponseDto {
   id!: number;
@@ -14,4 +17,5 @@ export class PostResponseDto {
   content!: string;
   createdAt!: Date;
   author!: AuthorResponseDto;
+  
 }

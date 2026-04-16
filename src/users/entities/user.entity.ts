@@ -1,6 +1,6 @@
 import { Post } from '../../posts/entities/post.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-
+import { Comment } from '../../comments/entities/comment.entity';
 export enum UserRole {
     ADMIN = 'ADMIN',
     USER = 'USER'
@@ -32,4 +32,7 @@ export class User {
 
     @OneToMany(() => Post, (post) => post.author)
     posts!: Post[];
+
+    @OneToMany(() => Comment, (comment) => comment.post)
+comments!: Comment[];
 }

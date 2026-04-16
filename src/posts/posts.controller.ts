@@ -14,6 +14,8 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { PostResponseDto } from './dto/post-response.dto';
+import { PaginatedPostsDto } from './dto/paginated-posts.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -25,7 +27,7 @@ export class PostsController {
   create(
     @Body() createPostDto: CreatePostDto,
     @Request() req,
-  ) {
+  ): Promise<PostResponseDto> {
     return this.postsService.create(
       createPostDto,
       req.user.userId,
@@ -37,7 +39,7 @@ export class PostsController {
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-  ) {
+  ): Promise<PaginatedPostsDto> {
     return this.postsService.findAll(
       Number(page) || 1,
       Number(limit) || 10,
@@ -46,9 +48,19 @@ export class PostsController {
 
   // 🔥 GET BY ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<PostResponseDto> {
     return this.postsService.findOne(+id);
   }
+  @Get('feed')
+findFeed(
+  @Query('page') page?: string,
+  @Query('limit') limit?: string,
+) {
+  return this.postsService.findFeed(
+    Number(page) || 1,
+    Number(limit) || 10,
+  );
+}
 
   // 🔥 UPDATE
   @Patch(':id')
@@ -57,7 +69,7 @@ export class PostsController {
     @Param('id') id: string,
     @Body() updateDto: UpdatePostDto,
     @Request() req,
-  ) {
+  ): Promise<PostResponseDto> {
     return this.postsService.update(
       +id,
       updateDto,
@@ -71,7 +83,7 @@ export class PostsController {
   remove(
     @Param('id') id: string,
     @Request() req,
-  ) {
+  ): Promise<{ message: string }> {
     return this.postsService.remove(
       +id,
       req.user.userId,
