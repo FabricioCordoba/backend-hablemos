@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
+import { PaginatedPostFeedDto } from './dto/paginated-post-feed.dto';
 import { PaginatedPostsDto } from './dto/paginated-posts.dto';
 import { PostFeedDto } from './dto/post-feed-dto';
 import { PostResponseDto } from './dto/post-response.dto';
@@ -45,7 +46,7 @@ export class PostsController {
   findFeed(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<PostFeedDto[]> {
+  ): Promise<PaginatedPostFeedDto> {
     return this.postsService.findFeed(Number(page) || 1, Number(limit) || 10);
   }
 

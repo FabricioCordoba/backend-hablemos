@@ -188,18 +188,21 @@ describe('PostsService', () => {
         orderBy: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          {
-            id: 1,
-            content: 'Feed post',
-            createdAt: new Date(),
-            commentsCount: 5,
-            author: {
+        getManyAndCount: jest.fn().mockResolvedValue([
+          [
+            {
               id: 1,
-              pseudonym: 'testuser',
-              avatar: 'avatar_1',
+              content: 'Feed post',
+              createdAt: new Date(),
+              commentsCount: 5,
+              author: {
+                id: 1,
+                pseudonym: 'testuser',
+                avatar: 'avatar_1',
+              },
             },
-          },
+          ],
+          1,
         ]),
       };
 
@@ -207,8 +210,10 @@ describe('PostsService', () => {
 
       const result = await service.findFeed(1, 10);
 
-      expect(result[0].commentsCount).toBe(5);
-      expect(mockQB.getMany).toHaveBeenCalled();
+      expect(result.total).toBe(1);
+      expect(result.data[0].commentsCount).toBe(5);
+      expect(result.page).toBe(1);
+      expect(mockQB.getManyAndCount).toHaveBeenCalled();
     });
   });
 

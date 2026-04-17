@@ -24,6 +24,7 @@ describe('AuthController', () => {
           provide: UsersService,
           useValue: {
             findOne: jest.fn(),
+            findProfile: jest.fn(),
           },
         },
       ],
@@ -70,11 +71,11 @@ describe('AuthController', () => {
       role: user.role,
     };
 
-    usersService.findOne.mockResolvedValue(user);
+    usersService.findProfile.mockResolvedValue(user);
 
     const result = await controller.getProfile(jwtUser);
 
     expect(result).toBeDefined();
-    expect(usersService.findOne).toHaveBeenCalledWith(jwtUser.userId);
+    expect(usersService.findProfile).toHaveBeenCalledWith(jwtUser.userId);
   });
 });

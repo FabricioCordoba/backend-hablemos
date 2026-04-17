@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { UserRole } from 'src/users/entities/user.entity';
+import { PaginatedPostFeedDto } from './dto/paginated-post-feed.dto';
 import { PaginatedPostsDto } from './dto/paginated-posts.dto';
 import { PostResponseDto } from './dto/post-response.dto';
 
@@ -165,19 +166,25 @@ describe('PostsController', () => {
   // ---------------- FEED ----------------
   describe('findFeed', () => {
     it('should return feed', async () => {
-      const feed = [
-        {
-          ...createMockPost(),
-          commentsCount: 5,
-        },
-      ];
+      const feed: PaginatedPostFeedDto = {
+        data: [
+          {
+            ...createMockPost(),
+            commentsCount: 5,
+          },
+        ],
+        total: 1,
+        page: 1,
+        lastPage: 1,
+      };
 
       service.findFeed.mockResolvedValue(feed as any);
 
       const result = await controller.findFeed(1, 10);
 
       expect(service.findFeed).toHaveBeenCalledWith(1, 10);
-      expect(result[0].commentsCount).toBe(5);
+      expect(result.data[0].commentsCount).toBe(5);
+      expect(result.total).toBe(1);
     });
   });
 });
