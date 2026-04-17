@@ -15,9 +15,7 @@ export class UsersService {
         @InjectRepository(User)
         private usersRepository: Repository<User>,
         private logger: LoggerService,
-    ) {
-        this.logger = new LoggerService('UsersService');
-    }
+    ) { }
 
 
     async createUser(createUserDto: CreateUserDto): Promise<User> {

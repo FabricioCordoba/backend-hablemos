@@ -11,11 +11,17 @@ export class AuthorResponseDto {
   role!: UserRole;
   createdAt!: Date;
 }
+export class AuthorPublicDto {
+  id!: number;
+  pseudonym!: string;
+  avatar!: string;
+}
 
 export class PostResponseDto {
   id!: number;
   content!: string;
   createdAt!: Date;
-  author!: AuthorResponseDto;
+  author!: AuthorPublicDto;
   
 }
+

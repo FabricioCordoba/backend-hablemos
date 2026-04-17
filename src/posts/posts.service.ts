@@ -9,7 +9,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PostResponseDto } from './dto/post-response.dto';
+import { AuthorPublicDto, PostResponseDto } from './dto/post-response.dto';
 import { PaginatedPostsDto } from './dto/paginated-posts.dto';
 import { AuthorResponseDto } from './dto/post-response.dto';
 import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
@@ -25,10 +25,13 @@ export class PostsService {
   ) { }
 
 
-  private mapAuthor(user: User): AuthorResponseDto {
-    const { password, ...rest } = user;
-    return rest;
-  }
+private mapAuthor(user: User): AuthorPublicDto {
+  return {
+    id: user.id,
+    pseudonym: user.pseudonym,
+    avatar: user.avatar,
+  };
+}
 
   private mapComment(comment: Comment): CommentResponseDto {
     return {
@@ -118,8 +121,7 @@ private mapPostDetail(post: Post): PostDetailResponseDto {
     if (post.author.id !== userId && role !== UserRole.ADMIN) {
       throw new ForbiddenException(
         'You cannot delete this post',
-      );
-    }
+      );}
 
     await this.postsRepository.remove(post);
 
