@@ -65,11 +65,15 @@ npm run test:cov
 npm run test:e2e
 ```
 
+## Documentacion para frontend
+
+- Guia de integracion: [FRONTEND_INTEGRATION.md](./FRONTEND_INTEGRATION.md)
+
 ## Estado actual de calidad
 
 - La suite unitaria queda en verde con el codigo actual.
 - Hay cobertura real sobre `AuthService`, `AuthController`, `UsersService`, `UsersController`, `PostsService` y `PostsController`.
-- `CommentsService` y `CommentsController` tienen cobertura minima, asi que ese modulo sigue siendo el punto mas flojo en testing.
+- `CommentsService` y `CommentsController` ya cubren los casos principales de negocio y delegacion, aunque todavia hay espacio para sumar e2e.
 - Existe un test e2e base de Nest, pero no una cobertura integral de endpoints.
 
 ## Notas de implementacion

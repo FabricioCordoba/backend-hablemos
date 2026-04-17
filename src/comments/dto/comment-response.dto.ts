@@ -4,5 +4,6 @@ export class CommentResponseDto {
   id!: number;
   content!: string;
   createdAt!: Date;
-  author!:AuthorPublicDto;
+  updatedAt!: Date;
+  author!: AuthorPublicDto;
 }

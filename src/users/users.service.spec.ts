@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { ForbiddenException } from '@nestjs/common';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { createMockUser } from 'src/test/factories/user.factory';
 import { mockLogger } from 'src/test/mocks/logger.mock';
 import { createMockRepository } from 'src/test/mocks/repository.mock';
 import { UsersService } from './users.service';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 
 jest.mock('bcrypt');
 
@@ -57,12 +58,76 @@ describe('UsersService', () => {
   });
 
   describe('findOne', () => {
-    it('should return user without password', async () => {
+    it('should return public user without private fields', async () => {
       repo.findOne.mockResolvedValue(createMockUser());
 
       const result = await service.findOne(1);
 
       expect(result).not.toHaveProperty('password');
+      expect(result).not.toHaveProperty('email');
+      expect(result).not.toHaveProperty('role');
+    });
+  });
+
+  describe('findProfile', () => {
+    it('should return private profile for authenticated user', async () => {
+      repo.findOne.mockResolvedValue(createMockUser());
+
+      const result = await service.findProfile(1);
+
+      expect(result.email).toBe('test@example.com');
+      expect(result.role).toBe(UserRole.USER);
+      expect(result).not.toHaveProperty('password');
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should allow owner update', async () => {
+      const user = createMockUser();
+      repo.findOne.mockResolvedValue(user);
+      repo.save.mockResolvedValue({
+        ...user,
+        pseudonym: 'updated',
+      });
+
+      const result = await service.updateUser(
+        1,
+        { pseudonym: 'updated' },
+        { userId: 1, role: UserRole.USER },
+      );
+
+      expect(result.pseudonym).toBe('updated');
+      expect(result).not.toHaveProperty('email');
+      expect(result).not.toHaveProperty('role');
+    });
+
+    it('should allow admin update', async () => {
+      const user = createMockUser();
+      repo.findOne.mockResolvedValue(user);
+      repo.save.mockResolvedValue({
+        ...user,
+        pseudonym: 'updated-by-admin',
+      });
+
+      const result = await service.updateUser(
+        1,
+        { pseudonym: 'updated-by-admin' },
+        { userId: 2, role: UserRole.ADMIN },
+      );
+
+      expect(result.pseudonym).toBe('updated-by-admin');
+    });
+
+    it('should reject unauthorized update', async () => {
+      repo.findOne.mockResolvedValue(createMockUser());
+
+      await expect(
+        service.updateUser(
+          1,
+          { pseudonym: 'nope' },
+          { userId: 2, role: UserRole.USER },
+        ),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

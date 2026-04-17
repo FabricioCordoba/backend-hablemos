@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthorPublicDto, PostResponseDto } from './dto/post-response.dto';
 import { PaginatedPostsDto } from './dto/paginated-posts.dto';
+import { PaginatedPostFeedDto } from './dto/paginated-post-feed.dto';
 import { AuthorResponseDto } from './dto/post-response.dto';
 import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
 import { Comment } from 'src/comments/entities/comment.entity';
@@ -38,6 +39,7 @@ private mapAuthor(user: User): AuthorPublicDto {
       id: comment.id,
       content: comment.content,
       createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
       author: this.mapAuthor(comment.author),
     };
   }
@@ -145,7 +147,7 @@ async findAll(page = 1, limit = 10): Promise<PaginatedPostsDto> {
   };
 }
 
-async findFeed(page = 1, limit = 10): Promise<PostFeedDto[]> {
+async findFeed(page = 1, limit = 10): Promise<PaginatedPostFeedDto> {
   const query = this.postsRepository
     .createQueryBuilder('post')
     .leftJoin('post.author', 'author')
@@ -165,19 +167,24 @@ async findFeed(page = 1, limit = 10): Promise<PostFeedDto[]> {
     .take(limit)
     .skip((page - 1) * limit);
 
-  const posts = await query.getMany();
+  const [posts, total] = await query.getManyAndCount();
 
-  return posts.map((post: any) => ({
-    id: post.id,
-    content: post.content,
-    createdAt: post.createdAt,
-    author: {
-      id: post.author.id,
-      pseudonym: post.author.pseudonym,
-      avatar: post.author.avatar,
-    },
-    commentsCount: post.commentsCount,
-  }));
+  return {
+    data: posts.map((post: any) => ({
+      id: post.id,
+      content: post.content,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        pseudonym: post.author.pseudonym,
+        avatar: post.author.avatar,
+      },
+      commentsCount: post.commentsCount,
+    })),
+    total,
+    page,
+    lastPage: Math.ceil(total / limit),
+  };
 }
 
 async findOne(id: number): Promise<PostDetailResponseDto> {

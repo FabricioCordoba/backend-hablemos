@@ -1,52 +1,49 @@
 import {
-  Controller,
-  Post,
   Body,
-  UseGuards,
-  Request,
+  Controller,
+  Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
-  Delete,
+  Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CommentResponseDto } from './dto/comment-response.dto';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Comment } from './entities/comment.entity';
 
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  // 🔥 CREATE
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() dto: CreateCommentDto, @Request() req): Promise<Comment> {
+  create(@Body() dto: CreateCommentDto, @Request() req): Promise<CommentResponseDto> {
     return this.commentsService.create(dto, req.user.userId);
   }
 
-  // 🔥 GET BY POST
   @Get('post/:postId')
-  findByPost(@Param('postId') postId: string): Promise<Comment[]> {
-    return this.commentsService.findByPost(+postId);
+  findByPost(@Param('postId', ParseIntPipe) postId: number): Promise<CommentResponseDto[]> {
+    return this.commentsService.findByPost(postId);
   }
 
-  // 🔥 UPDATE
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCommentDto,
     @Request() req,
-  ): Promise<Comment> {
-    return this.commentsService.update(+id, dto, req.user.userId);
+  ): Promise<CommentResponseDto> {
+    return this.commentsService.update(id, dto, req.user.userId);
   }
 
-  // 🔥 DELETE
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @Request() req): Promise<{ message: string }> {
-    return this.commentsService.remove(+id, req.user.userId, req.user.role);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req): Promise<{ message: string }> {
+    return this.commentsService.remove(id, req.user.userId, req.user.role);
   }
 }
